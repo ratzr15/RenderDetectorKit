@@ -8,7 +8,7 @@
 import SwiftUI
 import UIKit
 
-actor HangMonitorViewModel {
+public actor HangMonitorViewModel {
     public static let shared = HangMonitorViewModel()
     private init() {}
     

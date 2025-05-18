@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-struct HangBannerView: View {
+public struct HangBannerView: View {
     @StateObject var ui = HangMonitorUI.shared
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             if let bannerData = ui.currentBannerData {
                 Rectangle()
