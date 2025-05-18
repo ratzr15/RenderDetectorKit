@@ -13,11 +13,11 @@ public class HangMonitorUI: ObservableObject {
     @Published var currentBannerData: BannerData? = nil
 }
 
-extension HangMonitorUI {
+public extension HangMonitorUI {
     func setBanner(color: Color, message: String) {
         self.currentBannerData = BannerData(color: color, message: message)
     }
-
+    
     func clearBanner() {
         self.currentBannerData = nil
     }
