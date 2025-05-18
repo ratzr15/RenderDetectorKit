@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 public class HangMonitorUI: ObservableObject {
-    public static let shared = HangMonitorUI()
+    public static var shared = HangMonitorUI()
     @Published var currentBannerData: BannerData? = nil
 }
 
