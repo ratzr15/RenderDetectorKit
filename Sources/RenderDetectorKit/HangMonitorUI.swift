@@ -8,8 +8,8 @@
 import SwiftUI
 
 @MainActor
-class HangMonitorUI: ObservableObject {
-    static let shared = HangMonitorUI()
+public class HangMonitorUI: ObservableObject {
+    public static let shared = HangMonitorUI()
     @Published var currentBannerData: BannerData? = nil
 }
 
