@@ -9,16 +9,14 @@ import SwiftUI
 
 @MainActor
 public class HangMonitorUI: ObservableObject {
-    public static var shared = HangMonitorUI()
-    @Published var currentBannerData: BannerData? = nil
-}
+    public static let shared = HangMonitorUI()
+    @Published public var currentBannerData: BannerData?
 
-public extension HangMonitorUI {
-    func setBanner(color: Color, message: String) {
-        self.currentBannerData = BannerData(color: color, message: message)
+    public func setBanner(color: Color, message: String) {
+        currentBannerData = BannerData(color: color, message: message)
     }
-    
-    func clearBanner() {
-        self.currentBannerData = nil
+
+    public func clearBanner() {
+        currentBannerData = nil
     }
 }

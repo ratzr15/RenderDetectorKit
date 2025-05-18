@@ -8,94 +8,83 @@
 import SwiftUI
 import UIKit
 
-public actor HangMonitorViewModel {
+@MainActor
+public final class HangMonitorViewModel: @unchecked Sendable {
     public static let shared = HangMonitorViewModel()
-    private init() {}
-    
-    var isMonitoring = false
+
+    private var isMonitoringFlag = false
+    private var timer: Timer?
+    private let lock = DispatchQueue(label: "com.renderdetectorkit.hangmonitor.lock")
+
     private let timeoutThresholdYellow: Int = 100
     private let timeoutThresholdRed: Int = 250
-    private var hangDetectionTimer: Timer?
-    
-    public var uiHandler: @Sendable (BannerData?) async -> Void = { _ in }
-    
-    nonisolated public func startMonitoring() {
-        Task { await _startMonitoring() }
+
+    private init() {}
+
+    public var isMonitoring: Bool {
+        lock.sync { isMonitoringFlag }
     }
-    
-    private func _startMonitoring() {
+
+    public func startMonitoring() {
         guard !isMonitoring else { return }
-        isMonitoring = true
-        _startHangDetection()
+        isMonitoringFlag = true
+        checkHang()
     }
-    
-    nonisolated public func stopMonitoring() {
-        Task { await _stopMonitoring() }
-    }
-    
-    private func _stopMonitoring() async {
-        isMonitoring = false
-        _stopHangDetection()
-        await _hideBanner()
-    }
-    
-    private func _startHangDetection() {
-        hangDetectionTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { await self?._checkMainThreadResponsiveness() }
+
+    public func stopMonitoring() {
+        lock.sync {
+            isMonitoringFlag = false
+            timer?.invalidate()
+            timer = nil
+        }
+
+        Task { @MainActor in
+            HangMonitorUI.shared.clearBanner()
         }
     }
-    
-    private func _stopHangDetection() {
-        hangDetectionTimer?.invalidate()
-        hangDetectionTimer = nil
-    }
-    
-    private func _checkMainThreadResponsiveness() {
+
+    private func checkHang() {
         let semaphore = DispatchSemaphore(value: 0)
         DispatchQueue.main.async {
             semaphore.signal()
         }
-        let timeoutResult = semaphore.wait(timeout: .now() + 0.3)
-        
-        if timeoutResult == .timedOut {
-            Task { await self._reportHang() }
+
+        let result = semaphore.wait(timeout: .now() + 0.3)
+        if result == .timedOut {
+            reportHang()
         }
     }
-    
-    private func _reportHang() async {
-        let currentTime = Date()
-        print("App hang detected at: \(currentTime)")
-        
+
+    private func reportHang() {
         let start = Date()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            Task {
-                let duration = Int(Date().timeIntervalSince(start) * 1000)
-                await self.showBannerIfNeeded(duration: duration)
+            let duration = Int(Date().timeIntervalSince(start) * 1000)
+            HangMonitorViewModel.shared.showBannerIfNeeded(duration: duration)
+        }
+    }
+
+    public func showBannerIfNeeded(duration: Int) {
+        if duration > timeoutThresholdRed {
+            showBanner(color: .red, message: "App Hang Detected (> \(timeoutThresholdRed)ms)")
+        } else if duration > timeoutThresholdYellow {
+            showBanner(color: .yellow, message: "Potential App Hang (> \(timeoutThresholdYellow)ms)")
+        } else {
+            Task { @MainActor in
+                HangMonitorUI.shared.clearBanner()
             }
         }
     }
-    
-    func showBannerIfNeeded(duration: Int) {
+
+    private func showBanner(color: Color, message: String) {
+        Task { @MainActor in
+            HangMonitorUI.shared.setBanner(color: color, message: message)
+        }
+
         Task {
-            if duration > timeoutThresholdRed {
-                await _showBanner(color: .red, message: "App Hang Detected (> \(timeoutThresholdRed)ms)")
-            } else if duration > timeoutThresholdYellow {
-                await _showBanner(color: .yellow, message: "Potential App Hang (> \(timeoutThresholdYellow)ms)")
-            } else {
-                await _hideBanner()
+            try? await Task.sleep(for: .seconds(2))
+            await MainActor.run {
+                HangMonitorUI.shared.clearBanner()
             }
-        }
-    }
-    
-    private func _showBanner(color: Color, message: String) async {
-        await uiHandler(BannerData(color: color, message: message))
-        try? await Task.sleep(for: .seconds(2))
-        await uiHandler(nil)
-    }
-    
-    private func _hideBanner() async {
-        await MainActor.run {
-            HangMonitorUI.shared.clearBanner()
         }
     }
 }

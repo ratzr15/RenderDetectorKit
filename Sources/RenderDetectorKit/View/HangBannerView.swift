@@ -10,10 +10,10 @@ import SwiftUI
 public struct HangBannerView: View {
     @StateObject public var ui: HangMonitorUI
 
-    public init(ui: HangMonitorUI = HangMonitorUI.shared) {
-         _ui = StateObject(wrappedValue: ui)
+    public init(ui: HangMonitorUI = .shared) {
+        _ui = StateObject(wrappedValue: ui)
     }
-    
+
     public var body: some View {
         VStack(spacing: 0) {
             if let bannerData = ui.currentBannerData {
