@@ -37,7 +37,7 @@ Create a XCFramework to measure the AppHangs in iOS App
 
 ## Installation
 
-To install this package, import `url` through SPM
+To install this package, import `https://github.com/ratzr15/RenderDetectorKit.git` through SPM
 
 
 ## Usage Example
@@ -90,4 +90,5 @@ struct ScreenTwoView: View {
         }
         .navigationTitle("Screen 2")
     }
-}```
+}
+```
