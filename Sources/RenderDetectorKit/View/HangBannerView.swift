@@ -8,8 +8,8 @@
 import SwiftUI
 
 public struct HangBannerView: View {
-    @StateObject var ui = HangMonitorUI.shared
-
+    @StateObject public var ui = HangMonitorUI.shared
+    
     public var body: some View {
         VStack(spacing: 0) {
             if let bannerData = ui.currentBannerData {
