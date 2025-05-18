@@ -17,7 +17,7 @@ public actor HangMonitorViewModel {
     private let timeoutThresholdRed: Int = 250
     private var hangDetectionTimer: Timer?
     
-    var uiHandler: @Sendable (BannerData?) async -> Void = { _ in }
+    public var uiHandler: @Sendable (BannerData?) async -> Void = { _ in }
     
     nonisolated public func startMonitoring() {
         Task { await _startMonitoring() }
