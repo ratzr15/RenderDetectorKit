@@ -17,6 +17,8 @@ public actor HangMonitorViewModel {
     private let timeoutThresholdRed: Int = 250
     private var hangDetectionTimer: Timer?
     
+    var uiHandler: @Sendable (BannerData?) async -> Void = { _ in }
+    
     nonisolated public func startMonitoring() {
         Task { await _startMonitoring() }
     }
@@ -86,11 +88,9 @@ public actor HangMonitorViewModel {
     }
     
     private func _showBanner(color: Color, message: String) async {
-        await MainActor.run {
-            HangMonitorUI.shared.setBanner(color: color, message: message)
-        }
+        await uiHandler(BannerData(color: color, message: message))
         try? await Task.sleep(for: .seconds(2))
-        await _hideBanner()
+        await uiHandler(nil)
     }
     
     private func _hideBanner() async {
